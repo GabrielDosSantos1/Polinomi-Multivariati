@@ -4,7 +4,7 @@
 
 %%%% i monomi devono essere rappresentatiti cosi:
 
-m(Coefficient, TotalDegree, VarsPowers).
+%%m(Coefficient, TotalDegree, VarsPowers).
 
 is_monomial(m(_C, TD, VPs)) :-
 	integer(TD),  %si accerta che sia un intero
@@ -14,7 +14,7 @@ is_monomial(m(_C, TD, VPs)) :-
 
 %%%% VarsPowers VPs e una lista ed deve essere rappresentata cosi:
 
-v(Power, VarSymbol).
+%%v(Power, VarSymbol).
 
 is_varpower(v(Power, VarSymbol)):-
 	integer(Power),
@@ -23,7 +23,7 @@ is_varpower(v(Power, VarSymbol)):-
 
 %%%% I polinomi devono essere rappresentati cosi:
 
-poly(Monomials).
+%%poly(Monomials).
 
 is_polynomial(poly(Monomials)):-
 	is_list(Monomials),
