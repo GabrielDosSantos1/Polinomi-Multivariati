@@ -1,6 +1,13 @@
 %%%% -*- Mode: Prolog -*-
 %%%% polinomimultivariati.pl --
 
+%TODO : NON FUNZIONA as_polynomial(y^4*z*x^5-y*z*r+y^4*r*z^5,P).
+% restituisce :
+%ERROR: Syntax error: Operator expected
+%ERROR: as_polynomial(y^4*z*x^
+%ERROR: ** here **
+%ERROR: 5−y*z*r+y^4*r*z^5,P) .
+
 is_monomial(m(_C, TD, VPs)) :-
 	integer(TD),
 	TD >= 0,
@@ -87,9 +94,9 @@ d([_],R,[],R).
 d([_,_|T],[X|L],[X|L1],R) :- d(T,L,L1,R).
 
 as_polynomial(Expression,poly(Sorted1)):-
-	monomi(Expression,Monomi),
-	sort(2, @=< , Monomi, Sorted), %% qui ordino secondo il grado dei monomi
-	sort(3, @=< , Sorted, Sorted1). %% qui ordino in base alle Variabili
+	monomi(Expression,Monomi), %% devo controllare se ho dei duplicati
+	sort([3,2], @=< , Monomi, Sorted), %% qui ordino in base alle Variabili
+	sort(2, @>= , Sorted, Sorted1). %% qui ordino secondo il grado dei monomi
 
 %TODO cercare bene come vanno ordinati i polinomi
 
@@ -106,5 +113,7 @@ monomi(Ex2-Ex1, Monomi) :-
 	append(Mo2, [m(Cneg,P,L)], Monomi).
 
 monomi(Exp,[Monomio]) :- as_monomial(Exp,Monomio).
+
+
 
 %%%% end of file -- polinomimultivariati.pl --
