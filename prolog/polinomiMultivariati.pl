@@ -164,6 +164,10 @@ monomi(Ex2-Ex1, Monomi) :-
 
 monomi(Exp,[Monomio]) :- as_monomial(Exp,Monomio).
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % coefficients
 coefficients(Poly(Monomi), Coefficients) :-
@@ -192,8 +196,7 @@ get_variables([v(_,Symbol)|Resto],[Symbol|Ricorsione]):-
 %monomials(Poly, Monomials)
 %TODO: risolvere il problema dell'ordinamento
 monomials(poly(Monomials), Monomials):-
-	spareggio(Monomio, Sorted), %% qui ordino in base alle Variabili
-	sort(2, @>= , Sorted, Monomials). %% qui ordino secondo il grado dei monomi.
+	ordina_monomi(Monomio, Sorted).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % maxdegree(Poly, Degree)
@@ -201,8 +204,8 @@ maxdegree(poly(Monomi), Soluzione):-
 	find_degree(Monomi, Degrees),
 	max_list(Degrees, Soluzione)  .
 
-find_degree([],0).
-find_degree([m(_, Degree, _)| Resto], [Degree|Ris]):-
+find_degree([],[]).
+find_degree([m(_, Degree, _)| Resto], [Degree|Ric]):-
 	find_degree(Resto, Ric).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -230,7 +233,7 @@ polyminus(Poly1, Poly2, poly(Soluzione)):-
 	polytimes(poly(m(-1,0,[])), Poly2, Poly2PerMinusOne),
 	polyplus(Poly1, Poly2PerMinusOne, poly(Soluzione)).
 
-%%%%%%%%%%%%%1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %polytimes(Poly1, Poly2, Result)
 %TODO: questo ritorna un polinomio ma non è ordinato quindi bisogna ordinarlo.
 polytimes(poly([]), _ ,poly([])).
@@ -246,4 +249,5 @@ scalare(m(C1, TD1, Var1), [m(C2, TD2, Var2)|Resto], [m(C, TD, Var)|SoluzioneRic]
 	append(Var1,  Var2, Var),
 	scalare(m(C1, TD1, Var1), Resto, SoluzioneRic).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% end of file -- polinomimultivariati.pl --
