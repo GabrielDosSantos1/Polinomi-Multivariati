@@ -36,6 +36,7 @@ as_variable(X*Y, L) :-
 as_variable(C, [C]) :- C\= [], integer(C).
 as_variable(-C , [R]) :- C\= [] , integer(C), R is C * -1.
 as_variable(X, [v(1,X)]):- X \= [], atom(X), is_varpower(v(1,X)).
+as_variable(X^0,[]) :- atom(X).
 as_variable(X^Y, [v(Y,X)]):- !,
 	Y >= 0,
 	integer(Y),
@@ -65,23 +66,19 @@ merge_sort(Lista,Sorted):-
 	merge_sort(L1,Sorted1),
 	merge_sort(L2,Sorted2),
 	merge(Sorted1,Sorted2,Sorted).
-
 merge([],L,L).
 merge(L,[],L) :- L \= [].
-
 merge([v(N,X)|RestX],[v(M,Y)|RestY],[v(N,X)|Rest]) :-
 	char_code(X,C1),
 	char_code(Y,C2),
 	C1 < C2,
 	merge(RestX,[v(M,Y)|RestY],Rest).
-
 merge([v(N,X)|RestX],[v(M,Y)|RestY],[v(G,X)|Rest]):-
 	char_code(X,C1),
 	char_code(Y,C2),
 	C1 = C2,
 	G is N+M,
 	merge(RestX,RestY,Rest).
-
 merge([v(N,X)|RestX],[v(M,Y)|RestY],[v(M,Y)|Rest]) :-
 	char_code(X,C1),
 	char_code(Y,C2),
@@ -93,9 +90,60 @@ d([],R,[],R).
 d([_],R,[],R).
 d([_,_|T],[X|L],[X|L1],R) :- d(T,L,L1,R).
 
+%% l'ordinamento di sort non funziona come dovrebbe in realta non funziona solo per l'ordinamento lessiografi
+ordinamento_polinomi([v(_, _)],[], 1).
+ordinamento_polinomi([v(_, X)],[v(_, Y)], 1) :-
+	char_code(X,C1),
+	char_code(Y,C2),
+	C1 > C2.
+
+ordinamento_polinomi([],[],0).
+ordinamento_polinomi([v(_, X)],[v(_, Y)], 0) :- %%% questo effetivamento è il coso in cui i due monomi sono uguali
+	char_code(X,C1),
+	char_code(Y,C2),
+	C1 = C2.
+
+ordinamento_polinomi([],[v(_, _)], -1).
+ordinamento_polinomi([v(_, X)],[v(_, Y)], -1) :-
+	char_code(X,C1),
+	char_code(Y,C2),
+	C1 < C2.
+
+ordinamento_polinomi([X|RestX],[Y|RestY], Ris) :-
+	ordinamento_polinomi([X],[Y],Ris),
+	ris \= 0.
+
+ordinamento_polinomi([X|RestX],[Y|RestY], Ris) :-
+	ordinamento_polinomi([X],[Y],0),
+	ordinamento_polinomi(RestX,RestY,Ris).
+
+spareggio([],[]).
+spareggio([m(_,_,M1),m(_,_,M2)|Resto],[m(_,_,M2)|RestOrd]):-
+	ordinamento_polinomi(M1,M2,1),
+	spareggio(Resto, RestOrd).
+
+spareggio([],[]).
+spareggio([m(C1,T1,M1)],[m(C1,T1,M1)]).
+
+spareggio([m(C1,T1,M1),m(C2,T2,M2)|Resto],[m(C1,T1,M1)|RestOrd]):-
+	ordinamento_polinomi(M1,M2,1),
+	append([m(C2,T2,M2)],Resto,Ric),
+	spareggio(Ric, RestOrd).
+
+spareggio([m(C1,T1,M1),m(C2,T2,M2)|Resto],[m(C2,T2,M2)|RestOrd]):-
+	ordinamento_polinomi(M1,M2,-1),
+	append([m(C1,T1,M1)],Resto,Ric),
+	spareggio(Ric, RestOrd).
+
+spareggio([m(C1,T1,M1),m(C2,T2,M2)|Resto],[m(C2,T2,M2)|RestOrd]):- %%% TODO : FINIRE MANCA IL CASO IN CUI SONO UGUALI
+	ordinamento_polinomi(M1,M2,0),
+	append([m(C1,T1,M1)],Resto,Ric),
+	spareggio(Ric, RestOrd).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 as_polynomial(Expression,poly(Sorted1)):-
 	monomi(Expression,Monomi), %% devo controllare se ho dei duplicati
-	sort([3,2], @=< , Monomi, Sorted), %% qui ordino in base alle Variabili
+	spareggio(Monomio, Sorted), %% qui ordino in base alle Variabili
 	sort(2, @>= , Sorted, Sorted1). %% qui ordino secondo il grado dei monomi
 
 %TODO cercare bene come vanno ordinati i polinomi
@@ -115,5 +163,52 @@ monomi(Ex2-Ex1, Monomi) :-
 monomi(Exp,[Monomio]) :- as_monomial(Exp,Monomio).
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% coefficients
+coefficients(Poly(Monomi), Coefficients) :-
+	find_coefficients(Monomi,Coefficients).
 
+find_coefficients([m(C ,_ ,_)|Resto],[C|R]):-
+	find_coefficients(Resto,R).
+
+find_coefficients([],[]).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% variables
+% TODO: bisogna gestire il caso in cui ci sono simboli duplicati.
+variables(poly(Monomi), Variables):-
+	find_monomi(Monomi,Variables).
+
+find_monomi([],[]).
+find_monomi([m(_, _, Var)| Resto], Soluzione):-
+	get_variables(Var,Variables),
+	find_monomi(Resto, Ricorsione),
+	append(Variables, Ricorsione, Soluzione).
+
+get_variables([],[]).
+get_variables([v(_,Symbol)|Resto],[Symbol|Ricorsione]):-
+	get_variables(Resto,Ricorsione).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%monomials(Poly, Monomials)
+%TODO: risolvere il problema dell'ordinamento
+monomials(poly(Monomials), Monomials):-
+	spareggio(Monomio, Sorted), %% qui ordino in base alle Variabili
+	sort(2, @>= , Sorted, Monomials). %% qui ordino secondo il grado dei monomi.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% maxdegree(Poly, Degree)
+%TODO: trovare il massimo di una lista
+maxdegree(poly(Monomi), Soluzione):-
+	find_degree(Monomi, Degree).
+
+find_degree([],[]).
+find_degree([m(_, _, Var)| Resto], Soluzione):-
+	get_degree(Var,Variables),
+	find_degree(Resto, Ricorsione),
+	append(Variables, Ricorsione, Soluzione).
+
+get_degree([v(_,Symbol)|Resto],[Symbol|Ricorsione]):-
+	get_degree(Resto,Ricorsione).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%% end of file -- polinomimultivariati.pl --
