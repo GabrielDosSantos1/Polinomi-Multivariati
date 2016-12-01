@@ -141,6 +141,8 @@ spareggio([m(C1,T1,M1),m(C2,T2,M2)|Resto],[m(C2,T2,M2)|RestOrd]):- %%% TODO : FI
 	spareggio(Ric, RestOrd).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%TODO: Questo metodo deve essere completamente rifatto
+% stare attenti alla somma
 as_polynomial(Expression,poly(Sorted1)):-
 	monomi(Expression,Monomi), %% devo controllare se ho dei duplicati
 	spareggio(Monomio, Sorted), %% qui ordino in base alle Variabili
@@ -161,7 +163,6 @@ monomi(Ex2-Ex1, Monomi) :-
 	append(Mo2, [m(Cneg,P,L)], Monomi).
 
 monomi(Exp,[Monomio]) :- as_monomial(Exp,Monomio).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % coefficients
@@ -193,22 +194,56 @@ get_variables([v(_,Symbol)|Resto],[Symbol|Ricorsione]):-
 monomials(poly(Monomials), Monomials):-
 	spareggio(Monomio, Sorted), %% qui ordino in base alle Variabili
 	sort(2, @>= , Sorted, Monomials). %% qui ordino secondo il grado dei monomi.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % maxdegree(Poly, Degree)
-%TODO: trovare il massimo di una lista
 maxdegree(poly(Monomi), Soluzione):-
-	find_degree(Monomi, Degree).
+	find_degree(Monomi, Degrees),
+	max_list(Degrees, Soluzione)  .
 
-find_degree([],[]).
-find_degree([m(_, _, Var)| Resto], Soluzione):-
-	get_degree(Var,Variables),
-	find_degree(Resto, Ricorsione),
-	append(Variables, Ricorsione, Soluzione).
-
-get_degree([v(_,Symbol)|Resto],[Symbol|Ricorsione]):-
-	get_degree(Resto,Ricorsione).
-
-
+find_degree([],0).
+find_degree([m(_, Degree, _)| Resto], [Degree|Ris]):-
+	find_degree(Resto, Ric).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%mindegree(Poly, Degree).
+maxdegree(poly(Monomi), Soluzione):-
+	find_degree(Monomi, Degrees),
+	min_list(Degrees, Soluzione)  .
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%polyplus(Poly1, Poly2, Result)
+%TODO: bisogna considerare i seguenti casi:
+% il caso in cui il coefficiente del monomio è positivo
+% il caso in cui il coefficiente del monomio è negativo
+% fare l'ordinamento
+polyplus(Poly1, Poly2, poly(Soluzione)) :-
+	Poly1 = poly(Monomi1),
+	Poly2 = poly(Monomi2),
+	append(Monomi1, Monomi2, Monomi),
+	ordina_monomi(Monomi, Soluzione).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%polyminus
+%TODO: implemento prima polytimes
+polyminus(Poly1, Poly2, poly(Soluzione)):-
+	polytimes(poly(m(-1,0,[])), Poly2, Poly2PerMinusOne),
+	polyplus(Poly1, Poly2PerMinusOne, poly(Soluzione)).
+
+%%%%%%%%%%%%%1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%polytimes(Poly1, Poly2, Result)
+%TODO: questo ritorna un polinomio ma non è ordinato quindi bisogna ordinarlo.
+polytimes(poly([]), _ ,poly([])).
+polytimes(poly([M|Resto], poly(Monomi2) , poly(Soluzione)) :-
+	scalare(M, Monomi2, Primo),
+	polytimes(poly(Resto) ,poly(Monomi2), poly(SoluzioneRic)),
+	append(Primo ,SoluzioneRic, Soluzione).
+
+scalare(m(_, _, _), [] , []).
+scalare(m(C1, TD1, Var1), [m(C2, TD2, Var2)|Resto], [m(C, TD, Var)|SoluzioneRic]) :-
+	C is C1 * C2,
+	TD is TD1 + TD2,
+	append(Var1,  Var2, Var),
+	scalare(m(C1, TD1, Var1), Resto, SoluzioneRic).
+
 %%%% end of file -- polinomimultivariati.pl --
