@@ -1,107 +1,94 @@
 %%%% -*- Mode: Prolog -*-
 %%%% polinomimultivariati.pl --
 
-is_monomial(m(_C, TD, VPs)) :-
-	integer(TD),
-	TD >= 0,
-	is_list(VPs).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-is_varpower(v(Power, VarSymbol)):-
-	integer(Power),
-	Power >= 0,
-	atom(VarSymbol).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% coefficients
+coefficients(Poly(Monomi), Coefficients) :-
+	find_coefficients(Monomi,Coefficients).
 
-is_polynomial(poly(Monomials)):-
-	is_list(Monomials),
-	foreach(member(M,  Monomials), is_monomial(M)).
+find_coefficients([m(C ,_ ,_)|Resto],[C|R]):-
+	find_coefficients(Resto,R).
 
-as_monomial(-Expression , m(Cneg, Tot, Var)) :-
-	as_variable(Expression, Variable),
-	formalizzazione(Variable, Coe, Tot, Var),!,
-	Cneg is Coe * -1,
-	is_monomial(m(Cneg, Tot, Var)).
+find_coefficients([],[]).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% variables
+% TODO: bisogna gestire il caso in cui ci sono simboli duplicati.
+variables(poly(Monomi), Variables):-
+	find_monomi(Monomi,Variables).
 
-as_monomial(Expression, m(Coe, Tot, Var)) :-
-	as_variable(Expression, Variable),
-	formalizzazione(Variable, Coe, Tot, Var),!,
-	is_monomial(m(Coe, Tot, Var)).
+find_monomi([],[]).
+find_monomi([m(_, _, Var)| Resto], Soluzione):-
+	find_variables(Var,Variables),
+	find_monomi(Resto, Ricorsione),
+	append(Variables, Ricorsione, Soluzione).
 
-as_variable(X*Y, L) :-
-	as_variable(X, R),
-	!,
-	as_variable(Y, E),
-	append(R,E,L).
+find_variables([],[]).
+find_variables([v(_,Symbol)|Resto],[Symbol|Ricorsione]):-
+	find_variables(Resto,Ricorsione).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%monomials(Poly, Monomials)
+%TODO: risolvere il problema dell'ordinamento
+monomials(poly(Monomials), Monomials).
 
-as_variable(C, [C]) :- C\= [], integer(C).
-as_variable(X, [v(1,X)]):- X \= [], atom(X), is_varpower(v(1,X)).
-as_variable(X^Y, [v(Y,X)]):- !, Y >= 0, integer(Y), atom(X), is_varpower(v(Y,X)).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% maxdegree(Poly, Degree)
+maxdegree(poly(Monomi), Soluzione):-
+	find_degree(Monomi, Degrees),
+	max_list(Degrees, Soluzione)  .
 
-formalizzazione([Coe|Resto], Coe, Tot, Variabili) :-
-	integer(Coe),
-	merge_sort_monomi(Resto,Variabili),
-	sumdegree(Variabili,Tot).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%mindegree(Poly, Degree).
+mindegree(poly(Monomi), Soluzione):-
+	find_degree(Monomi, Degrees),
+	min_list(Degrees, Soluzione).
 
-formalizzazione(Var, 1, Tot, Variabili) :-
-	merge_sort_monomi(Var,Variabili),
-	sumdegree(Variabili,Tot).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+find_degree([],[]).
+find_degree([m(_, Degree, _)| Resto], [Degree|Ric]):-
+	find_degree(Resto, Ric).
 
-formalizzazione([Coe], Coe, 0, []) :- integer(Coe).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%polyplus(Poly1, Poly2, Result)
+%TODO: fare l'ordinamento
+polyplus(Poly1, Poly2, poly(Soluzione)) :-
+	Poly1 = poly(Monomi1),
+	Poly2 = poly(Monomi2),
+	append(Monomi1, Monomi2, Monomi),
+	ordina_monomi(Monomi, Soluzione).
 
-sumdegree([v(N,_)|Resto], R) :-
-	sumdegree(Resto,M),!,
-	R is N+M.
-sumdegree([v(N,_)],N).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%polyminus
+polyminus(Poly1, Poly2, poly(Soluzione)):-
+	polytimes(poly(m(-1,0,[])), Poly2, Poly2PerMinusOne),
+	polyplus(Poly1, Poly2PerMinusOne, poly(Soluzione)).
 
-merge_sort_monomi([v(N,X)],[v(N,X)]).
-merge_sort_monomi(Lista,Sorted):-
-	Lista = [_,_|_],
-	divide(Lista,L1,L2),
-	merge_sort_monomi(L1,Sorted1),
-	merge_sort_monomi(L2,Sorted2),
-	merge_monomi(Sorted1,Sorted2,Sorted).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%polytimes(Poly1, Poly2, Result)
+%TODO: ritorna un polinomio bisogna ordinarlo.
+polytimes(poly([]), _ ,poly([])).
 
-merge_monomi([],L,L).
-merge_monomi(L,[],L) :- L \= [].
+polytimes(poly([M|Resto]), poly(Monomi2), poly(Soluzione)) :-
+	scalare(M, Monomi2, Primo),
+	polytimes(poly(Resto) ,poly(Monomi2), poly(SoluzioneRic)),
+	append(Primo ,SoluzioneRic, Soluzione).
 
-merge_monomi([v(N,X)|RestX],[v(M,Y)|RestY],[v(N,X)|Rest]) :-
-	char_code(X,C1),
-	char_code(Y,C2),
-	C1 < C2,
-	merge_monomi(RestX,[v(M,Y)|RestY],Rest).
+scalare(m(_, _, _), [] , []).
+scalare(m(C1, TD1, Var1), [m(C2, TD2, Var2)|Resto], [m(C, TD, Var)|Ric]) :-
+	C is C1 * C2,
+	TD is TD1 + TD2,
+	append(Var1,  Var2, Var),
+	scalare(m(C1, TD1, Var1), Resto, Ric).
 
-merge_monomi([v(N,X)|RestX],[v(M,Y)|RestY],[v(G,X)|Rest]):-
-	char_code(X,C1),
-	char_code(Y,C2),
-	C1 = C2,
-	G is N+M,
-	merge_mononi(RestX,RestY,Rest).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%polyval(Polynomial, VariableValues, Value)
 
-merge_monomi([v(N,X)|RestX],[v(M,Y)|RestY],[v(M,Y)|Rest]) :-
-	char_code(X,C1),
-	char_code(Y,C2),
-	C1 > C2,
-	merge_monomi([v(N,X)|RestX],RestY,Rest).
 
-divide(L,A,B) :- d(L,L,A,B).
-d([],R,[],R).
-d([_],R,[],R).
-d([_,_|T],[X|L],[X|L1],R) :- d(T,L,L1,R).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%pprint_polynomial(Polynomial)
 
-polynomial(Expression,poly(Monomi)):-
-	monomi(Expression,Monomi).
 
-monomi(Ex2+Ex1, Monomi) :-
-	!,as_monomial(Ex1, Mo1),
-	monomi(Ex2, Mo2),
-	append(Mo2, [Mo1], Monomi).
-
-monomi(Ex2-Ex1, Monomi) :-
-	!,as_monomial(Ex1, Mo1),
-	Mo1 = m(C,P,L),
-	Cneg is C * -1,
-	monomi(Ex2, Mo2),
-	append(Mo2, [m(Cneg,P,L)], Monomi).
-
-monomi(Exp,[Monomio]) :- as_monomial(Exp,Monomio).
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%% end of file -- polinomimultivariati.pl --
