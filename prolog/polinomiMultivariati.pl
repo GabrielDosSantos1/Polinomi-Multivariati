@@ -106,27 +106,27 @@ as_monomial(Expression, m(C, TD, NoCoeff)) :-
 as_variable([],[]).
 as_variable(C, [C]) :- C\= [], number(C),!.
 as_variable(-C , [R]) :- C\= [] , number(C), R is C * -1,!.
-as_variable(C/D, [R]) :- R is C rdiv D, !.
-as_variable(sqrt(C), [R]) :- is_number(C),R is sqrt(C),!.
-as_variable(sin(C), [R]) :- is_number(C),R is sin(C),!.
-as_variable(sen(C), [R]) :- is_number(C),R is sin(C),!.
-as_variable(cos(C), [R]) :- is_number(C),R is cos(C),!.
-as_variable(tan(C), [R]) :- is_number(C),R is tan(C),!.
-as_variable(asin(C), [R]) :- is_number(C), R is asin(C),!.
-as_variable(acos(C), [R]) :- is_number(C), R is acos(C),!.
-as_variable(atan(C), [R]) :- is_number(C), R is atan(C),!.
-as_variable(sinh(C), [R]) :- is_number(C), R is sinh(C),!.
-as_variable(cosh(C), [R]) :- is_number(C), R is cosh(C),!.
-as_variable(tanh(C), [R]) :- is_number(C), R is tanh(C),!.
-as_variable(asinh(C), [R]) :- is_number(C), R is asinh(C),!.
-as_variable(acosh(C), [R]) :- is_number(C), R is acosh(C),!.
-as_variable(atanh(C), [R]) :- is_number(C), R is atanh(C),!.
-as_variable(log(C), [R]) :- is_number(C), R is log(C),!.
-as_variable(log10(C), [R]) :- is_number(C),R is log10(C), !.
-as_variable(e^(C), [R]) :- is_number(C), R is exp(C), !.
-as_variable(exp(C), [R]) :- is_number(C), R is exp(C), !.
+as_variable(C/D, [R]) :- is_number(C, C1), is_number(D, D1),  R is C1 rdiv D1, !.
+as_variable(sqrt(C), [R]) :- is_number(C, C1),R is sqrt(C1),!.
+as_variable(sin(C), [R]) :- is_number(C, C1),R is sin(C1),!.
+as_variable(sen(C), [R]) :- is_number(C, C1),R is sin(C1),!.
+as_variable(cos(C), [R]) :- is_number(C, C1),R is cos(C1),!.
+as_variable(tan(C), [R]) :- is_number(C, C1),R is tan(C1),!.
+as_variable(asin(C), [R]) :- is_number(C, C1), R is asin(C1),!.
+as_variable(acos(C), [R]) :- is_number(C, C1), R is acos(C1),!.
+as_variable(atan(C), [R]) :- is_number(C, C1), R is atan(C1),!.
+as_variable(sinh(C), [R]) :- is_number(C, C1), R is sinh(C1),!.
+as_variable(cosh(C), [R]) :- is_number(C, C1), R is cosh(C1),!.
+as_variable(tanh(C), [R]) :- is_number(C, C1), R is tanh(C1),!.
+as_variable(asinh(C), [R]) :- is_number(C, C1), R is asinh(C1),!.
+as_variable(acosh(C), [R]) :- is_number(C, C1), R is acosh(C1),!.
+as_variable(atanh(C), [R]) :- is_number(C, C1), R is atanh(C1),!.
+as_variable(log(C), [R]) :- is_number(C, C1), R is log(C1),!.
+as_variable(log10(C), [R]) :- is_number(C, C1),R is log10(C1), !.
+as_variable(e^(C), [R]) :- is_number(C, C1), R is exp(C1), !.
+as_variable(exp(C), [R]) :- is_number(C, C1), R is exp(C1), !.
 as_variable(pi, [R]) :- R is pi, !.
-as_variable(C^E, [R]) :- is_number(C),is_number(E), R is C^E,!.
+as_variable(C^E, [R]) :- is_number(C, C1),is_number(E, E1), R is C1^E1,!.
 
 %Variables
 as_variable(X*Y, L) :-
@@ -149,12 +149,12 @@ as_variable(X^Y, [v(Y,X)]):- !,
 
 % qui c'è un problemma questo predicato dovrebbe avere arieta 2 in caso
 % non sia un numero ritorna il numero in modo ricorsivo.
-is_number(C) :- number(C).
-is_number(C) :- as_variable(C,C).
+is_number(C, C) :- number(C).
+is_number(C, R) :- as_variable(C,R).
 
 
 %Coefficiente
-find_Coefficent([C|Var],C ,Var) :- number(C),!.
+find_Coefficent([C|Var],C ,Var) :- number(C),!, format('~4f~n', C).
 find_Coefficent([C|Var],1 ,Vars) :- not(number(C)), append([C], Var, Vars),!.
 
 %somma dei gradi
