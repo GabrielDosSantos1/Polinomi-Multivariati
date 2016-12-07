@@ -154,8 +154,18 @@ is_number(C, R) :- as_variable(C,R).
 
 
 %Coefficiente
-find_Coefficent([C|Var],R ,Var) :- number(C),!, format('~4f~n', C).
-find_Coefficent([C|Var],1 ,Vars) :- not(number(C)), append([C], Var, Vars),!.
+coefficient(C) :- number(C).
+
+find_coefficient([C|Var], R, O) :-
+	coefficient(C),
+	find_coefficient(Var, TD, Vars),
+	R is C+TD,!,
+	append(Var,Vars,O).
+
+find_coefficient([C|Var], R, Vars) :-
+	not(coefficient(C)),
+	find_coefficient(Var, R, Var),
+	append([C], Var, Vars).
 
 %somma dei gradi
 sumdegree([], 0).
