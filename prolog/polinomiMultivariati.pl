@@ -97,13 +97,14 @@ scalare(m(C1, TD1, Var1), [m(C2, TD2, Var2)|Resto], [m(C, TD, Var)|Ric]) :-
 %TODO: Manca testare
 as_monomial(Expression, m(C, TD, NoCoeff)) :-
 	as_variable(Expression, Variables),
-	find_coefficient(Variables , C, NoCoeff),
+	find_coefficient(Variables , Coe, NoCoeff),
+	C is round(Coe * 1000) / 1000,
 	sumdegree(NoCoeff, TD).
 
 %tipi di coefficienti
 as_coefficient([],[]).
 as_coefficient(C, [C]) :- number(C),!.
-as_coefficient(-C , [R]) :- number(C), R is C * -1,!.
+as_coefficient(-C , [R]) :- is_number(C, [C1]), R is C1 * -1,!.
 as_coefficient(C/D, [R]) :- is_number(C, [C1]), is_number(D, [D1]),  R is C1 rdiv D1, !.
 as_coefficient(sqrt(C), [R]) :- is_number(C, [C1]),R is sqrt(C1),!.
 as_coefficient(sin(C), [R]) :- is_number(C, [C1]),R is sin(C1),!.
@@ -138,12 +139,13 @@ as_variable(X*Y, L) :-
 	as_variable(Y, E),
 	append(R,E,L).
 
-as_variable(X, [v(1,X)]):- atom(X).
-as_variable(X^0,[]) :- atom(X).
+as_variable(X, [v(1,X)]):- atom(X), X \=  pi.
+as_variable(X^0,[]) :- atom(X), X \=  pi.
 
 as_variable(X^Y, [v(Y,X)]):-
 	Y >= 0,
 	integer(Y),
+	X \=  pi,
 	atom(X),!.
 
 as_variable(C, R) :- as_coefficient(C, R).
