@@ -97,76 +97,63 @@ scalare(m(C1, TD1, Var1), [m(C2, TD2, Var2)|Resto], [m(C, TD, Var)|Ric]) :-
 %TODO: Manca testare
 as_monomial(Expression, m(C, TD, NoCoeff)) :-
 	as_variable(Expression, Variables),
-	find_Coefficent(Variables , C, NoCoeff),
+	find_coefficient(Variables , C, NoCoeff),
 	sumdegree(NoCoeff, TD).
 
-% Costants
-%TODO: bisogna considerare che C puo essere un altro coeffiente cioe
-% una funzione calcolabile.
-as_variable([],[]).
-as_variable(C, [C]) :- C\= [], number(C),!.
-as_variable(-C , [R]) :- C\= [] , number(C), R is C * -1,!.
-as_variable(C/D, [R]) :- is_number(C, C1), is_number(D, D1),  R is C1 rdiv D1, !.
-as_variable(sqrt(C), [R]) :- is_number(C, C1),R is sqrt(C1),!.
-as_variable(sin(C), [R]) :- is_number(C, C1),R is sin(C1),!.
-as_variable(sen(C), [R]) :- is_number(C, C1),R is sin(C1),!.
-as_variable(cos(C), [R]) :- is_number(C, C1),R is cos(C1),!.
-as_variable(tan(C), [R]) :- is_number(C, C1),R is tan(C1),!.
-as_variable(asin(C), [R]) :- is_number(C, C1), R is asin(C1),!.
-as_variable(acos(C), [R]) :- is_number(C, C1), R is acos(C1),!.
-as_variable(atan(C), [R]) :- is_number(C, C1), R is atan(C1),!.
-as_variable(sinh(C), [R]) :- is_number(C, C1), R is sinh(C1),!.
-as_variable(cosh(C), [R]) :- is_number(C, C1), R is cosh(C1),!.
-as_variable(tanh(C), [R]) :- is_number(C, C1), R is tanh(C1),!.
-as_variable(asinh(C), [R]) :- is_number(C, C1), R is asinh(C1),!.
-as_variable(acosh(C), [R]) :- is_number(C, C1), R is acosh(C1),!.
-as_variable(atanh(C), [R]) :- is_number(C, C1), R is atanh(C1),!.
-as_variable(log(C), [R]) :- is_number(C, C1), R is log(C1),!.
-as_variable(log10(C), [R]) :- is_number(C, C1),R is log10(C1), !.
-as_variable(e^(C), [R]) :- is_number(C, C1), R is exp(C1), !.
-as_variable(exp(C), [R]) :- is_number(C, C1), R is exp(C1), !.
-as_variable(pi, [R]) :- R is pi, !.
-as_variable(C^E, [R]) :- is_number(C, C1),is_number(E, E1), R is C1^E1,!.
+%tipi di coefficienti
+as_coefficient([],[]).
+as_coefficient(C, [C]) :- number(C),!.
+as_coefficient(-C , [R]) :- number(C), R is C * -1,!.
+as_coefficient(C/D, [R]) :- is_number(C, [C1]), is_number(D, [D1]),  R is C1 rdiv D1, !.
+as_coefficient(sqrt(C), [R]) :- is_number(C, [C1]),R is sqrt(C1),!.
+as_coefficient(sin(C), [R]) :- is_number(C, [C1]),R is sin(C1),!.
+as_coefficient(sen(C), [R]) :- is_number(C, [C1]),R is sin(C1),!.
+as_coefficient(cos(C), [R]) :- is_number(C, [C1]),R is cos(C1),!.
+as_coefficient(tan(C), [R]) :- is_number(C, [C1]),R is tan(C1),!.
+as_coefficient(asin(C), [R]) :- is_number(C, [C1]), R is asin(C1),!.
+as_coefficient(acos(C), [R]) :- is_number(C, [C1]), R is acos(C1),!.
+as_coefficient(atan(C), [R]) :- is_number(C, [C1]), R is atan(C1),!.
+as_coefficient(sinh(C), [R]) :- is_number(C, [C1]), R is sinh(C1),!.
+as_coefficient(cosh(C), [R]) :- is_number(C, [C1]), R is cosh(C1),!.
+as_coefficient(tanh(C), [R]) :- is_number(C, [C1]), R is tanh(C1),!.
+as_coefficient(asinh(C), [R]) :- is_number(C, [C1]), R is asinh(C1),!.
+as_coefficient(acosh(C), [R]) :- is_number(C, [C1]), R is acosh(C1),!.
+as_coefficient(atanh(C), [R]) :- is_number(C, [C1]), R is atanh(C1),!.
+as_coefficient(log(C), [R]) :- is_number(C, [C1]), R is log(C1),!.
+as_coefficient(log10(C), [R]) :- is_number(C, [C1]),R is log10(C1), !.
+as_coefficient(exp(C), [R]) :- is_number(C, [C1]), R is exp(C1), !.
+as_coefficient(pi, [R]) :- R is pi, !.
+as_coefficient(C^E, [R]) :- is_number(C, [C1]),is_number(E, [E1]), R is C1^E1,!.
+
+% qui c'è un problemma questo predicato dovrebbe avere arieta 2 in caso
+% non sia un numero ritorna il numero in modo ricorsivo.
+is_number(C, [C]) :- number(C).
+is_number(C, R) :- as_coefficient(C,R).
 
 %Variables
+
 as_variable(X*Y, L) :-
 	as_variable(X, R),
 	!,
 	as_variable(Y, E),
 	append(R,E,L).
 
-as_variable(X, [v(1,X)]):-
-	X \= [],
-	atom(X),
-	is_varpower(v(1,X)).
+as_variable(X, [v(1,X)]):- atom(X).
 as_variable(X^0,[]) :- atom(X).
 
-as_variable(X^Y, [v(Y,X)]):- !,
+as_variable(X^Y, [v(Y,X)]):-
 	Y >= 0,
 	integer(Y),
-	atom(X),
-	is_varpower(v(Y,X)).
+	atom(X),!.
 
-% qui c'è un problemma questo predicato dovrebbe avere arieta 2 in caso
-% non sia un numero ritorna il numero in modo ricorsivo.
-is_number(C, C) :- number(C).
-is_number(C, R) :- as_variable(C,R).
+as_variable(C, R) :- as_coefficient(C, R).
 
+%Coefficiente trova un coefficiente
+find_coefficient([], 1, []).
+find_coefficient([C|Rest], S, Var) :- coefficient(C),!, find_coefficient(Rest, R, Var), S is C*R.
+find_coefficient([C|Rest], R, [C|Vars]) :- find_coefficient(Rest, R, Vars).
 
-%Coefficiente
 coefficient(C) :- number(C).
-
-find_coefficient([C|Var], R, O) :-
-	coefficient(C),
-	find_coefficient(Var, TD, Vars),
-	R is C+TD,!,
-	append(Var,Vars,O).
-
-find_coefficient([C|Var], R, O) :-
-	not(coefficient(C)),
-	find_coefficient(Var, R, VarS),
-	append([C], Var, F),
-	append(VarS, F, O).
 
 %somma dei gradi
 sumdegree([], 0).
