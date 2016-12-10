@@ -33,7 +33,7 @@ find_variables([v(_,Symbol)|Resto],[Symbol|Ricorsione]):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %monomials(Poly, Monomials)
 % TODO: risolvere il problema dell'ordinamento qui molto probabilmente
-% ci darà un monomio non ordinato.
+% ci darï¿½ un monomio non ordinato.
 monomials(poly(Monomials), Monomials).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,11 +95,12 @@ scalare(m(C1, TD1, Var1), [m(C2, TD2, Var2)|Resto], [m(C, TD, Var)|Ric]) :-
 %as_monomial(Expression, Monomial).
 %TODO: Manca l'ordinamento
 %TODO: Manca testare
-as_monomial(Expression, m(C, TD, NoCoeff)) :-
+as_monomial(Expression, m(C, TD, Sorted)) :-
 	as_variable(Expression, Variables),
 	find_coefficient(Variables , Coe, NoCoeff),
 	C is round(Coe * 1000) / 1000,
-	sumdegree(NoCoeff, TD).
+	sumdegree(NoCoeff, TD),
+	sort_monomio(NoCoeff, Sorted).
 
 %tipi di coefficienti
 as_coefficient([],[]).
@@ -126,7 +127,7 @@ as_coefficient(exp(C), [R]) :- is_number(C, [C1]), R is exp(C1), !.
 as_coefficient(pi, [R]) :- R is pi, !.
 as_coefficient(C^E, [R]) :- is_number(C, [C1]),is_number(E, [E1]), R is C1^E1,!.
 
-% qui c'è un problemma questo predicato dovrebbe avere arieta 2 in caso
+% qui c'ï¿½ un problemma questo predicato dovrebbe avere arieta 2 in caso
 % non sia un numero ritorna il numero in modo ricorsivo.
 is_number(C, [C]) :- number(C).
 is_number(C, R) :- as_coefficient(C,R).
@@ -152,8 +153,12 @@ as_variable(C, R) :- as_coefficient(C, R).
 
 %Coefficiente trova un coefficiente
 find_coefficient([], 1, []).
-find_coefficient([C|Rest], S, Var) :- coefficient(C),!, find_coefficient(Rest, R, Var), S is C*R.
-find_coefficient([C|Rest], R, [C|Vars]) :- find_coefficient(Rest, R, Vars).
+find_coefficient([C|Rest], S, Var) :-
+	coefficient(C),!,
+	find_coefficient(Rest, R, Var),
+	S is C*R.
+find_coefficient([C|Rest], R, [C|Vars]) :-
+	find_coefficient(Rest, R, Vars).
 
 coefficient(C) :- number(C).
 
@@ -167,8 +172,10 @@ sumdegree([v(N,_)|Resto], R) :-
 %as polynomial
 %TODO: Manca L'ordinamento
 %TODO: Manca testare
-as_polynomial(Expression, poly(Risultato)) :-
-	find_monomials(Expression, Risultato).
+as_polynomial(Expression, poly(Sorted)) :-
+	find_monomials(Expression, Monomi),
+	sort_polinomio(Monomi, Risultato),
+	sort(2, @=< , Risultato, Sorted),!.
 
 %find_monomial
 find_monomials(Ex2+Ex1, Monomi) :-
@@ -192,7 +199,7 @@ find_monomials(Exp,[Monomio]) :- as_monomial(Exp,Monomio).
 %pprint_polynomial(Polynomial).
 
 % TODO: ATTENZIONE NELLA CONSEGNA QUESTO PREDICATO DEVE ESSERE UNARIO
-% PER FARE CIO BASTERà CANCELLARE EXPRESSION
+% PER FARE CIO BASTERï¿½ CANCELLARE EXPRESSION
 pprint_polynomial(poly(Monomial), Expression):-
 	print_monomial(Monomial, ListChars),
 	atomics_to_string(ListChars, Expression),
@@ -220,5 +227,97 @@ print_variables([v(TD, Symbol)|Rest], [*,Symbol,^,TD|R]) :-
 	print_variables(Rest,R).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%ordinamento dei monomi.
 
-%%%% end of file -- polinomimultivariati.pl --
+sort_monomio([],[]).
+sort_monomio([X],[X]).
+sort_monomio(List,Sorted):-
+	List=[_,_|_],
+	divide(List,L1,L2),
+	sort_monomio(L1,Sorted1),
+	sort_monomio(L2,Sorted2),
+	monomio_cmp(Sorted1,Sorted2,Sorted),!.
+
+%regole per il confronto
+monomio_cmp([], Var, Var).
+monomio_cmp(Var, [], Var) :- Var \=  [].
+monomio_cmp([v(G1,S1)|T1],[v(G2,S2)|T2],[v(G1,S1)|Tail]) :-
+	char_code(S1, C1),
+	char_code(S2, C2),
+	C1 < C2,
+	monomio_cmp(T1,[v(G2,S2)|T2],Tail).
+monomio_cmp([v(G1,S1)|T1],[v(G2,S2)|T2],[v(G2,S2)|Tail]) :-
+	char_code(S1, C1),
+	char_code(S2, C2),
+	C1 > C2,
+	monomio_cmp([v(G1,S1)|T1],T2,Tail).
+monomio_cmp([v(G1,S1)|T1],[v(G2,S2)|T2],[v(Sum,S2)|Tail]):-
+	char_code(S1, C1),
+	char_code(S2, C2),
+	C1 = C2,
+	Sum is G1 + G2,
+	monomio_cmp(T1,T2,Tail).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Ordinamento polinomi
+sort_polinomio([],[]).
+sort_polinomio([X],[X]).
+sort_polinomio(List,Sorted):-
+	List=[_,_|_],
+	divide(List,L1,L2),
+	sort_polinomio(L1,Sorted1),
+	sort_polinomio(L2,Sorted2),
+	ord_polinomio(Sorted1,Sorted2,Sorted).
+
+ord_polinomio([],L,L).
+ord_polinomio(L,[],L):- L \= [].
+ord_polinomio([M1|T1],[M2|T2],[M1|Tail]):-
+	polinomio_cmp(M1, M2, Res),
+	Res = -1,
+	ord_polinomio(T1,[M2|T2],Tail).
+ord_polinomio([M1|T1],[M2|T2],[M2|T]):-
+	polinomio_cmp(M1, M2, Res),
+	Res = 1,
+	ord_polinomio([M1|T1],T2,T).
+ord_polinomio([m(C1,TD,Var)|T1],[m(C2,TD,Var)|T2],[m(Sum,TD,Var)|Tail]):-
+	Sum is C1 + C2,
+	ord_polinomio(T1,T2,Tail).
+
+ord_polinomio([M1|T1],[M2|T2],[M1,M2|Tail]):-
+	polinomio_cmp(M1,M2,Res),
+	Res = 0,
+	ord_polinomio(T1,T2,Tail).
+
+%Regole da usare per il compare
+polinomio_cmp(m(_,_,[v(G,S)|T1]), m(_,_,[v(G,S)|T2]), Tail) :-
+	polinomio_cmp(m(_,_,T1), m(_,_,T2), Tail).
+polinomio_cmp(m(_,_,[]),m(_,_,[]),0).
+
+
+polinomio_cmp(m(_,_,[v(_,S1)|_]), m(_,_,[v(_,S2)|_]), -1) :-
+	char_code(S1, C1),
+	char_code(S2, C2),
+	C1 < C2.
+polinomio_cmp(m(_,_,[v(G1,S)|_]), m(_,_,[v(G2,S)|_]), -1) :-
+	G1 < G2.
+polinomio_cmp(m(_,_,[]),m(_,_,M),-1):- M \= [].
+
+
+polinomio_cmp(m(_,_,[v(_,S1)|_]), m(_,_,[v(_,S2)|_]), 1) :-
+	char_code(S1, C1),
+	char_code(S2, C2),
+	C1 > C2.
+polinomio_cmp(m(_,_,[v(G1,S)|_]), m(_,_,[v(G2,S)|_]), 1) :-
+	G1 > G2.
+polinomio_cmp(m(_,_,M),m(_,_,[]),1):- M \= [].
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%predicato divide una a meta
+divide(L,A,B) :- d(L,L,A,B).
+d([],R,[],R).
+d([_],R,[],R).
+d([_,_|T],[X|L],[X|L1],R) :- d(T,L,L1,R).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%% End of file -- polinomimultivariati.pl --
