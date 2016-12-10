@@ -272,12 +272,10 @@ sort_polinomio(List,Sorted):-
 ord_polinomio([],L,L).
 ord_polinomio(L,[],L):- L \= [].
 ord_polinomio([M1|T1],[M2|T2],[M1|Tail]):-
-	polinomio_cmp(M1, M2, Res),
-	Res = -1,
+	polinomio_cmp(M1, M2, -1),
 	ord_polinomio(T1,[M2|T2],Tail).
 ord_polinomio([M1|T1],[M2|T2],[M2|T]):-
-	polinomio_cmp(M1, M2, Res),
-	Res = 1,
+	polinomio_cmp(M1, M2, 1),
 	ord_polinomio([M1|T1],T2,T).
 ord_polinomio([m(C1,TD,Var)|T1],[m(C2,TD,Var)|T2],[m(Sum,TD,Var)|Tail]):-
 	Sum is C1 + C2,

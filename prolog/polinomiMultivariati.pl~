@@ -289,7 +289,7 @@ ord_polinomio([M1|T1],[M2|T2],[M1,M2|Tail]):-
 	ord_polinomio(T1,T2,Tail).
 
 %Regole da usare per il compare
-polinomio_cmp(m(_,_,[v(_,S)|T1]), m(_,_,[v(_,S)|T2]), Tail) :-
+polinomio_cmp(m(_,_,[v(G,S)|T1]), m(_,_,[v(G,S)|T2]), Tail) :-
 	polinomio_cmp(m(_,_,T1), m(_,_,T2), Tail).
 polinomio_cmp(m(_,_,[]),m(_,_,[]),0).
 
@@ -298,6 +298,8 @@ polinomio_cmp(m(_,_,[v(_,S1)|_]), m(_,_,[v(_,S2)|_]), -1) :-
 	char_code(S1, C1),
 	char_code(S2, C2),
 	C1 < C2.
+polinomio_cmp(m(_,_,[v(G1,S)|_]), m(_,_,[v(G2,S)|_]), -1) :-
+	G1 < G2.
 polinomio_cmp(m(_,_,[]),m(_,_,M),-1):- M \= [].
 
 
@@ -305,6 +307,8 @@ polinomio_cmp(m(_,_,[v(_,S1)|_]), m(_,_,[v(_,S2)|_]), 1) :-
 	char_code(S1, C1),
 	char_code(S2, C2),
 	C1 > C2.
+polinomio_cmp(m(_,_,[v(G1,S)|_]), m(_,_,[v(G2,S)|_]), 1) :-
+	G1 > G2.
 polinomio_cmp(m(_,_,M),m(_,_,[]),1):- M \= [].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
