@@ -6,7 +6,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % coefficients
-% Todo informarsi cosa fare con i doppioni.
+% Todo: informarsi cosa fare con i doppioni.
 coefficients(poly(Monomi), Coefficients) :-
 	find_coefficients(Monomi,Coefficients).
 
@@ -18,6 +18,7 @@ find_coefficients([],[]).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % variables
 % TODO: bisogna gestire il caso in cui ci sono simboli duplicati.
+% TODO: bisogna capise se il polinomio è gia ordinato.
 variables(poly(Monomi), Variables):-
 	find_monomi(Monomi,Variables).
 
@@ -105,7 +106,8 @@ as_monomial(Expression, m(C, TD, Sorted)) :-
 %tipi di coefficienti
 as_coefficient([],[]).
 as_coefficient(C, [C]) :- number(C),!.
-as_coefficient(-C , [R]) :- is_number(C, [C1]), R is C1 * -1,!.
+as_coefficient(+C, [R]) :- is_number(C, [C1]), R is C1, !.
+as_coefficient(-C, [R]) :- is_number(C, [C1]), R is C1 * -1,!.
 as_coefficient(C/D, [R]) :- is_number(C, [C1]), is_number(D, [D1]),  R is C1 rdiv D1, !.
 as_coefficient(sqrt(C), [R]) :- is_number(C, [C1]),R is sqrt(C1),!.
 as_coefficient(sin(C), [R]) :- is_number(C, [C1]),R is sin(C1),!.
@@ -142,6 +144,9 @@ as_variable(X*Y, L) :-
 
 as_variable(X, [v(1,X)]):- atom(X), X \=  pi.
 as_variable(X^0,[]) :- atom(X), X \=  pi.
+as_variable(+X, [v(1,X)]):- atom(X), X \=  pi.
+as_variable(+X^0,[]) :- atom(X), X \=  pi.
+
 
 as_variable(X^Y, [v(Y,X)]):-
 	Y >= 0,
@@ -274,16 +279,17 @@ ord_polinomio(L,[],L):- L \= [].
 ord_polinomio([M1|T1],[M2|T2],[M1|Tail]):-
 	polinomio_cmp(M1, M2, -1),
 	ord_polinomio(T1,[M2|T2],Tail).
+
 ord_polinomio([M1|T1],[M2|T2],[M2|T]):-
 	polinomio_cmp(M1, M2, 1),
 	ord_polinomio([M1|T1],T2,T).
+
 ord_polinomio([m(C1,TD,Var)|T1],[m(C2,TD,Var)|T2],[m(Sum,TD,Var)|Tail]):-
 	Sum is C1 + C2,
 	ord_polinomio(T1,T2,Tail).
 
 ord_polinomio([M1|T1],[M2|T2],[M1,M2|Tail]):-
-	polinomio_cmp(M1,M2,Res),
-	Res = 0,
+	polinomio_cmp(M1,M2,0),
 	ord_polinomio(T1,T2,Tail).
 
 %Regole da usare per il compare
