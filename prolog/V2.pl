@@ -1,135 +1,135 @@
-%%%% -*- Mode: Prolog -*-
-%%%% V2.pl
+%% %%%% -*- Mode: Prolog -*-
+%% %%%% V2.pl
 
 %coefficient
 coefficient(poly(Monomials), Coefficients) :-
-  polynomials_sort(Monomials, Sorted),
-  find_coefficients(Sorted, Coefficients), !.
+	polynomials_sort(Monomials, Sorted),
+	find_coefficients(Sorted, Coefficients), !.
 
 coefficient(Expression, Coefficients) :-
-  as_polynomial(Expression, Polynomial),
-  coefficient(Polynomial, Coefficients).
+	as_polynomial(Expression, Polynomial),
+	coefficient(Polynomial, Coefficients).
 
 find_coefficients([], []).
 find_coefficients([m(C, _, _)| Rest], [C| Tail]) :-
-  find_coefficients(Rest, Tail).
+	find_coefficients(Rest, Tail).
 
-%variables
+						%variables
 variables(poly(Monomials), Variables) :-
-  polynomials_sort(Monomials, Sorted),
-  find_monomials(Sorted, Var),
-  duplicates(Var, Variables), !.
+	polynomials_sort(Monomials, Sorted),
+	find_monomials(Sorted, Var),
+	duplicates(Var, Variables), !.
 
 variables(Expression, Variables) :-
-  as_polynomial(Expression, Polynomial),
-  variables(Polynomial, Variables).
+	as_polynomial(Expression, Polynomial),
+	variables(Polynomial, Variables).
 
 find_monomials([], []).
 find_monomials([m(_, _, Var)| Rest], Monomials) :-
-  find_variables(Var, Variables),
-  find_monomials(Rest, RestMon),
-  append(Variables, RestMon, Monomials).
+	find_variables(Var, Variables),
+	find_monomials(Rest, RestMon),
+	append(Variables, RestMon, Monomials).
 
 find_variables([], []).
 find_variables([v(_, Symbol)| Rest], [Symbol| RestSym]) :-
-  find_variables(Rest, RestSym).
-%
-% TODO: FARE DUPLICATES
-%
-%monomials
+	find_variables(Rest, RestSym).
+						%
+						% TODO: FARE DUPLICATES
+						%
+						%monomials
 monomials(poly(Monomials), MonomialsList) :-
-  polynomials_sort(Monomials, MonomialsList), !.
+	polynomials_sort(Monomials, MonomialsList), !.
 
 monomials(Expression, MonomialsList) :-
-  as_polynomial(Expression, poly(MonomialsList)).
+	as_polynomial(Expression, poly(MonomialsList)).
 
-%maxdegree
+						%maxdegree
 maxdegree(poly(Monomials), MaxDegree) :-
-  degreeList(Monomials, Degrees),
-  max_list(Degrees, MaxDegree), !.
+	degreeList(Monomials, Degrees),
+	max_list(Degrees, MaxDegree), !.
 
 maxdegree(Expression, Maxdegree) :-
-  as_polynomial(Expression, Polynomial),
-  maxdegree(Polynomial, Maxdegree).
+	as_polynomial(Expression, Polynomial),
+	maxdegree(Polynomial, Maxdegree).
 
-%mindegree
+						%mindegree
 mindegree(poly(Monomials), Mindegree) :-
-  degreeList(Monomials, Degrees),
-  min_list(Degrees, Mindegree), !.
+	degreeList(Monomials, Degrees),
+	min_list(Degrees, Mindegree), !.
 
 mindegree(Expression, Mindegree) :-
-  as_polynomial(Expression, Polynomial),
-  mindegree(Polynomial, Mindegree).
+	as_polynomial(Expression, Polynomial),
+	mindegree(Polynomial, Mindegree).
 
 degreeList([], []).
 degreeList([m(_, Degree, _)| Rest], [Degree| Rec]) :-
-  degreeList(Rest, Rec).
+	degreeList(Rest, Rec).
 
-%polyplus
+						%polyplus
 polyplus(poly(Monomials1), poly(Monomials2), poly(Sum)) :-
-  append(Monomials1, Monomials2, List),
-  polynomials_sort(List, Sum), !.
+	append(Monomials1, Monomials2, List),
+	polynomials_sort(List, Sum), !.
 
 polyplus(Expression1, Expression2, Sum) :-
-  as_polynomial(Expression1, Polynomial1),
-  as_polynomial(Expression2, Polynomial2),
-  polyplus(Polynomial1, Polynomial2, Sum).
+	as_polynomial(Expression1, Polynomial1),
+	as_polynomial(Expression2, Polynomial2),
+	polyplus(Polynomial1, Polynomial2, Sum).
 
-%polyminus
+						%polyminus
 polyminus(Polynomial1, Polynomial2, Minimum) :-
-  polytimes(poly(m(-1, 0, [])), Polynomial2, Poly2PerMinusOne),
-  polyplus(Polynomial1, Poly2PerMinusOne, Minimum), !.
+	polytimes(poly(m(-1, 0, [])), Polynomial2, Poly2PerMinusOne),
+	polyplus(Polynomial1, Poly2PerMinusOne, Minimum), !.
 
 polyminus(Expression1, Expression2, Minus) :-
-  as_polynomial(Expression1, Polynomial1),
-  as_polynomial(Expression2, Polynomial2),
-  polyminus(Polynomial1, Polynomial2, Minus).
+	as_polynomial(Expression1, Polynomial1),
+	as_polynomial(Expression2, Polynomial2),
+	polyminus(Polynomial1, Polynomial2, Minus).
 
-%polytimes
+						%polytimes
 polytimes(poly([]), _, poly([])).
 
 polytimes(poly(Monomials1), poly(Monomials2), poly(PolySorted)) :-
-  polynomials_sort(Monomials1, poly(Sorted1)),
-  polynomials_sort(Monomials2, poly(Sorted2)),
-  dotProduct(Sorted1, Sorted2, Polytimes),
-  polynomials_sort(poly(Polytimes), PolySorted),!.
+	polynomials_sort(Monomials1, poly(Sorted1)),
+	polynomials_sort(Monomials2, poly(Sorted2)),
+	dotProduct(Sorted1, Sorted2, Polytimes),
+	polynomials_sort(poly(Polytimes), PolySorted),!.
 
 polytimes(Expression1, Expression2, Polytimes) :-
-  as_polynomial(Expression1, Polynomial1),
-  as_polynomial(Expression2, Polynomial2),
-  polytimes(Polynomial1, Polynomial2, Polytimes).
+	as_polynomial(Expression1, Polynomial1),
+	as_polynomial(Expression2, Polynomial2),
+	polytimes(Polynomial1, Polynomial2, Polytimes).
 
 dotProduct([Monomial| Rest], Monomials, Polytimes) :-
-  product(Monomial, Monomials, Solution),
-  dotProduct(Rest, Monomials, RicSolution),
-  append(Solution, RicSolution, Polytimes).
+	product(Monomial, Monomials, Solution),
+	dotProduct(Rest, Monomials, RicSolution),
+	append(Solution, RicSolution, Polytimes).
 
 product(m(_, _, _), [], []).
 product(m(C1, TD1, Var1), [m(C2, TD2, Var2)| Rest], [m(C, TD, Var)| Rec]) :-
-  C is C1 * C2,
-  TD is TD1 + TD2,
-  append(Var1, Var2, Var),
-  product(m(C1, TD1, Var1), Rest, Rec).
+	C is C1 * C2,
+	TD is TD1 + TD2,
+	append(Var1, Var2, Var),
+	product(m(C1, TD1, Var1), Rest, Rec).
 
-%as_monomials
+						%as_monomials
 as_monomial(Expression, m(C, TD, Sorted)) :-
-  as_variable(Expression, Variables),
-  find_coefficients(Variables, Coe, ListVar),
-  C is round(Coe * 1000) / 1000,
-  sumdegree(ListVar, TD),
-  monomial_sort(ListVar, Sorted).
+	as_variable(Expression, Variables),
+	find_coefficients(Variables, Coe, ListVar),
+	C is round(Coe * 1000) / 1000,
+	sumdegree(ListVar, TD),
+	monomial_sort(ListVar, Sorted).
 
-%as_variable
+						%as_variable
 as_variable(X*Y, Solution) :-
-  as_variable(X, R), !,
-  as_variable(Y, E),
-  append(R, E, Solution).
+	as_variable(X, R), !,
+	as_variable(Y, E),
+	append(R, E, Solution).
 
 as_variable(X^Y, [v(Y,X)]) :-
-  Y >= 0,
-  integer(Y),
-  X \= pi,
-  atom(X), !.
+	Y >= 0,
+	integer(Y),
+	X \= pi,
+	atom(X), !.
 
 as_variable(X, [v(1,X)]):- atom(X), X \=  pi.
 as_variable(X^0,[]) :- atom(X), X \=  pi.
@@ -139,30 +139,30 @@ as_variable(-X, [v(1,X)]):- atom(X), X \=  pi.
 as_variable(-X^0,[]) :- atom(X), X \=  pi.
 as_variable(C, R) :- as_coefficient(C, R).
 
-%find_coefficient
+						%find_coefficient
 find_coefficients([], 1, []).
 find_coefficients([Coefficient| Rest], Product, Variables) :-
-  number(Coefficient), !,
-  find_coefficients(Rest, RecSol, Variables),
-  Product is Coefficient * RecSol.
+	number(Coefficient), !,
+	find_coefficients(Rest, RecSol, Variables),
+	Product is Coefficient * RecSol.
 find_coefficients([C| Rest], Product, [C| Variables]) :-
-  find_coefficients(Rest, Product, Variables).
+	find_coefficients(Rest, Product, Variables).
 
-%sumdegree
+						%sumdegree
 sumdegree([], 0).
 sumdegree([v(Degree, _)| Rest], Solution) :-
-  sumdegree(Rest, RecSol),
-  Solution is Degree + RecSol.
+	sumdegree(Rest, RecSol),
+	Solution is Degree + RecSol.
 
-%ordinamento dei monomi
+						%ordinamento dei monomi
 monomial_sort([], []).
 monomial_sort([Variable], [Variable]).
 monomial_sort(Monomials, Sorted) :-
-  Monomials = [_, _| _],
-  divide(Monomials, Monomial1, Monomial2),
-  monomial_sort(Monomial1, Sorted1),
-  monomial_sort(Monomial2, Sorted2),
-  monomial_compare(Sorted1, Sorted2, Sorted), !.
+	Monomials = [_, _| _],
+	divide(Monomials, Monomial1, Monomial2),
+	monomial_sort(Monomial1, Sorted1),
+	monomial_sort(Monomial2, Sorted2),
+	monomial_compare(Sorted1, Sorted2, Sorted), !.
 
 monomial_compare([], Variable, Variable).
 monomial_compare(Variable, [], Variable) :- Variable \= [].
@@ -185,77 +185,79 @@ monomial_compare([v(G1,S1)|T1],[v(G2,S2)|T2],[v(Sum,S2)|Tail]):-
 	Sum is G1 + G2,
 	monomial_compare(T1,T2,Tail).
 
-%divide
+						%divide
 divide(L,A,B) :- d(L,L,A,B).
 d([],R,[],R).
 d([_],R,[],R).
 d([_,_|T],[X|L],[X|L1],R) :- d(T,L,L1,R).
 
-%coefficient
-as_coefficient([],[]).
-as_coefficient(C, [C]) :- number(C),!.
-as_coefficient(+C, [R]) :- is_number(C, [C1]), R is C1, !.
-as_coefficient(-C, [R]) :- is_number(C, [C1]), R is C1 * -1, !.
-as_coefficient(sqrt(C), [R]) :- is_number(C, [C1]), R is sqrt(C1), !.
-as_coefficient(sin(C), [R]) :- is_number(C, [C1]), R is sin(C1), !.
-as_coefficient(sen(C), [R]) :- is_number(C, [C1]), R is sin(C1),!.
-as_coefficient(cos(C), [R]) :- is_number(C, [C1]), R is cos(C1), !.
-as_coefficient(tan(C), [R]) :- is_number(C, [C1]), R is tan(C1), !.
-as_coefficient(asin(C), [R]) :- is_number(C, [C1]), R is asin(C1), !.
-as_coefficient(acos(C), [R]) :- is_number(C, [C1]), R is acos(C1), !.
-as_coefficient(atan(C), [R]) :- is_number(C, [C1]), R is atan(C1), !.
-as_coefficient(sinh(C), [R]) :- is_number(C, [C1]), R is sinh(C1), !.
-as_coefficient(cosh(C), [R]) :- is_number(C, [C1]), R is cosh(C1), !.
-as_coefficient(tanh(C), [R]) :- is_number(C, [C1]), R is tanh(C1), !.
-as_coefficient(asinh(C), [R]) :- is_number(C, [C1]), R is asinh(C1), !.
-as_coefficient(acosh(C), [R]) :- is_number(C, [C1]), R is acosh(C1), !.
-as_coefficient(atanh(C), [R]) :- is_number(C, [C1]), R is atanh(C1), !.
-as_coefficient(log(C), [R]) :- is_number(C, [C1]), R is log(C1), !.
-as_coefficient(log10(C), [R]) :- is_number(C, [C1]), R is log10(C1), !.
-as_coefficient(exp(C), [R]) :- is_number(C, [C1]), R is exp(C1), !.
-as_coefficient(pi, [R]) :- R is pi, !.
+						%coefficient
+as_coefficient(C, [R]) :- R is C.
+%% as_coefficient([],[]).
+%% as_coefficient(C, [C]) :- number(C),!.
+%% as_coefficient(+C, [R]) :- is_number(C, [C1]), R is C1, !.
+%% as_coefficient(-C, [R]) :- is_number(C, [C1]), R is C1 * -1, !.
+%% as_coefficient(sqrt(C), [R]) :- is_number(C, [C1]), R is sqrt(C1), !.
+%% as_coefficient(sin(C), [R]) :- is_number(C, [C1]), R is sin(C1), !.
+%% as_coefficient(sen(C), [R]) :- is_number(C, [C1]), R is sin(C1),!.
+%% as_coefficient(cos(C), [R]) :- is_number(C, [C1]), R is cos(C1), !.
+%% as_coefficient(tan(C), [R]) :- is_number(C, [C1]), R is tan(C1), !.
+%% as_coefficient(asin(C), [R]) :- is_number(C, [C1]), R is asin(C1), !.
+%% as_coefficient(acos(C), [R]) :- is_number(C, [C1]), R is acos(C1), !.
+%% as_coefficient(atan(C), [R]) :- is_number(C, [C1]), R is atan(C1), !.
+%% as_coefficient(sinh(C), [R]) :- is_number(C, [C1]), R is sinh(C1), !.
+%% as_coefficient(cosh(C), [R]) :- is_number(C, [C1]), R is cosh(C1), !.
+%% as_coefficient(tanh(C), [R]) :- is_number(C, [C1]), R is tanh(C1), !.
+%% as_coefficient(asinh(C), [R]) :- is_number(C, [C1]), R is asinh(C1), !.
+%% as_coefficient(acosh(C), [R]) :- is_number(C, [C1]), R is acosh(C1), !.
+%% as_coefficient(atanh(C), [R]) :- is_number(C, [C1]), R is atanh(C1), !.
+%% as_coefficient(log(C), [R]) :- is_number(C, [C1]), R is log(C1), !.
+%% as_coefficient(log10(C), [R]) :- is_number(C, [C1]), R is log10(C1), !.
+%% as_coefficient(exp(C), [R]) :- is_number(C, [C1]), R is exp(C1), !.
+%% as_coefficient(pi, [R]) :- R is pi, !
+.
 as_coefficient(C^E, [R]) :-
-  is_number(C, [C1]),
-  is_number(E, [E1]),
-  R is C1^E1,!.
+	is_number(C, [C1]),
+	is_number(E, [E1]),
+	R is C1^E1,!.
 as_coefficient(C/D, [R]) :-
-  is_number(C, [C1]),
-  is_number(D, [D1]),
-  R is C1 rdiv D1, !.
+	is_number(C, [C1]),
+	is_number(D, [D1]),
+	R is C1 rdiv D1, !.
 
-%ricorsione di as_coefficient
-is_number(C, [C]) :- number(C).
-is_number(C, R) :- as_coefficient(C,R).
+						%ricorsione di as_coefficient
+is_number(C, [C]) :- number(C), !.
+is_number(C, R) :- as_coefficient(C,R), !.
 
-%as_polynomial
+						%as_polynomial
 as_polynomial(Expression, poly(Sorted)) :-
-  get_Monomials(Expression, Monomials),
-  polynomial_sort(Monomials, Sorted), !.
+	get_Monomials(Expression, Monomials),
+	polynomial_sort(Monomials, Sorted), !.
 
 get_Monomials(Expression1+Expression2, Monomial) :-
-  as_monomial(Expression1, Monomial1),
-  get_Monomials(Expression2, Monomial2),
-  append(Monomial2, [Monomial1], Monomial).
+	as_monomial(Expression1, Monomial1),
+	get_Monomials(Expression2, Monomial2),
+	append(Monomial2, [Monomial1], Monomial).
 
 get_Monomials(Expression1-Expression2, Monomial) :-
-  as_monomial(Expression1, Monomial1),
-  Monomial1 = m(Coefficient, Power, Variables),
-  CoeNeg is Coefficient * -1,
-  get_Monomials(Expression2, Monomial2),
-  append(Monomial2, [m(CoeNeg, Power, Variables)], Monomial).
+	as_monomial(Expression1, Monomial1),
+	Monomial1 = m(Coefficient, Power, Variables),
+	CoeNeg is Coefficient * -1,
+	get_Monomials(Expression2, Monomial2),
+	append(Monomial2, [m(CoeNeg, Power, Variables)], Monomial).
 
 get_Monomials(Expression, [Monomial]) :-
-  as_monomial(Expression, Monomial).
+	as_monomial(Expression, Monomial).
 
-%polynomial_sort
+						%polynomial_sort
 polynomial_sort([], []).
 polynomial_sort([Monomial], [Monomial]).
 polynomial_sort(Monomials, Sorted) :-
-  Monomials = [_, _| _],
-  divide(Monomials, Monomial1, Monomial2),
-  polynomial_sort(Monomial1, Sorted1),
-  polynomial_sort(Monomial2, Sorted2),
-  lexical_order(Sorted1, Sorted2, Sorted).
+	Monomials = [_, _| _],
+	divide(Monomials, Monomial1, Monomial2),
+	polynomial_sort(Monomial1, Sorted1),
+	polynomial_sort(Monomial2, Sorted2),
+	lexical_order(Sorted1, Sorted2, Sorted).
 
 lexical_order([], Monomial, Monomial).
 lexical_order(Monomial, [], Monomial) :- Monomial \= [].
@@ -295,9 +297,9 @@ compare_rules(m(_, _, [v(G1, S)| _]), m(_, _, [v(G2, S)| _]), 1) :-
 	G1 > G2.
 compare_rules(m(_, _, M),m(_, _, []), 1) :- M \= [].
 
-%polyval
+						%polyval
 
-%pprint_polynomial
+						%pprint_polynomial
 pprint_polynomial(poly(Monomial)):-
 	print_monomial(Monomial, ListChars),
 	atomics_to_string(ListChars, Expression),
