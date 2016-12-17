@@ -41,9 +41,7 @@
 							(numberp (car monomial) )
 							(or (= count 1) (> 0 (car monomial) ) )
 						)
-						(
-							(* n (car monomial) )
-						)
+						( * n (car monomial) )
 					)
 					( ; CONDIZIONE2 siamo nel caso (* ... (4)  ...)  ALT s*-4*s non è un monomio
 						(and 									    ;	 s*(-4)*x è un monomio	
@@ -80,14 +78,16 @@
 	(let
 		(
 			(var-sum
-				( ; dobbiamo trovare tutti i (v n s) "le variabili"
-					(and
-						(listp (car monomial))
-						(eq 'v (first (car monomial)) )
-						(< 0 (second (car monomial)) )
-						(symbol (third (car monomial)) )
-					) 
-					(+ sum (second (car monomial)) )
+				(cond ; dobbiamo trovare tutti i (v n s) "le variabili"
+					(
+						(and
+							(listp (car monomial))
+							(eq 'v (first (car monomial)) )
+							(< 0 (second (car monomial)) )
+							(symbol (third (car monomial)) )
+						) 
+						(+ sum (second (car monomial)) )
+					)
 				)		
 			)
 		)
