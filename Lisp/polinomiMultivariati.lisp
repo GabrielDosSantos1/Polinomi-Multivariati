@@ -1,6 +1,3 @@
-; errore il caso (* 4 a) ritorna (M NUMERO (NIL))
-; errore il caso (* 4 (expt 4 a)) ritorna (M NUMERO (NIL))
-
 ;as-monomial
 (defun as-monomial (expression)
 	(cond 	(	;CONDIZIONE1 caso in cui '(4) 			#funziona
@@ -31,6 +28,80 @@
 				(list 'm 'TD (as-variable  (list expression) ) )
 			)
 	) 
+)
+
+;find-coefficient INPUT una expression OUTPUT la moltiplicazione dei coefficienti
+(defun find-coefficient (n monomial count)
+	(let
+		(
+			(coefficient
+				(cond
+					( ; CONDIZIONE1 siamo nel caso (* 1 ....)
+						(and
+							(numberp (car monomial) )
+							(or (= count 1) (> 0 (car monomial) ) )
+						)
+						(
+							(* n (car monomial) )
+						)
+					)
+					( ; CONDIZIONE2 siamo nel caso (* ... (4)  ...)  ALT s*-4*s non è un monomio
+						(and 									    ;	 s*(-4)*x è un monomio	
+							(listp (car monomial) )
+							(numberp (car (car monomial)))
+						)
+						(* n (car (car monomial)) )
+					)
+					( ; CONDIZIONE3 siamo nel caso non è un numero
+						(and
+							(not (listp (car monomial)))
+							(not (numberp ( car (car monomial) )))
+						) ; non è un numero 
+						n
+					)					
+				)
+			)
+		)
+		(cond ; # trasformare in if
+			( ; CONDIZIONE1 non ci sono piu elementi da analizzare
+				(eq nil (cdr monomial) )
+				coefficient
+			)
+			( ; CONDIZIONE2 bisogna fare una chiamata ricorsiva
+				T
+				(find-coefficient coefficient ( cdr monomial ) (+ 1 count) )  
+			)
+		)
+	)
+)
+
+;find-total-degree INPUT un monomio gia parsato senza numeri
+(defun find-total-degree (sum monomial)
+	(let
+		(
+			(var-sum
+				( ; dobbiamo trovare tutti i (v n s) "le variabili"
+					(and
+						(listp (car monomial))
+						(eq 'v (first (car monomial)) )
+						(< 0 (second (car monomial)) )
+						(symbol (third (car monomial)) )
+					) 
+					(+ sum (second (car monomial)) )
+				)		
+			)
+		)
+		(cond ; # trasformare in if
+			( ; CONDIZIONE1 non ci sono piu elementi da analizzare
+				(eq nil (cdr monomial) )
+				var-sum
+			)
+			( ; CONDIZIONE2 bisogna fare una chiamata ricorsiva
+				T
+				(find-total-degree var-sum ( cdr monomial ) )  
+			)
+		)
+	)
 )
 
 ;as-variable
