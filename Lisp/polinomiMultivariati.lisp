@@ -39,15 +39,15 @@
 		(
 			(var 
 				(cond
-					( ; CONDIZIONE1 ho una lista quindi puo essere solo un esponente tipo (expt 4 s)
+					( ; CONDIZIONE1 ho una lista quindi puo essere solo un esponente tipo (expt 4 s) 	# funziona
 						(listp (first variables))
 						(list (as-exponent (car variables) ) )
 					)
-					( ; CONDIZIONE2 ho una variabile tipo s  # restituisce  (M TD (V 1 EXPT 4 V 1 S))
+					( ; CONDIZIONE2 ho una variabile tipo s  											# funziona
 						(symbolp (car variables))
 						(list (list 'v 1 (car variables) ) )
 					)
-					( ; CONDIZIONE3 ho un NUMERO 
+					( ; CONDIZIONE3 ho un NUMERO 														# funziona
 						(numberp (car variables))
 						(list (car variables ) )
 					)
