@@ -1,33 +1,49 @@
-;as-monomial
-(defun as-monomial (expression)
-	(cond 	(	;CONDIZIONE1 caso in cui '(4) 			#funziona
-				(and	
-					(numberp (car expression) )
-					(eq nil (cdr expression) )
-				)
-				(list 'm (car expression) 0 nil )
+;as-monomial ATTENZIONE prende in input una espressione WARNING ci sono degli warning 
+(defun as-monomial (expression) 
+	(let 
+		(
+			(coefficient
+				(find-coefficient 1 expression 1)
 			)
-			(	;CONDIZIONE2 caso '(s) 					#funziona
-				(and	
-					(symbolp (car expression) )
-					(eq nil (cdr expression) )
-					(not(eq '* (car expression)))
-				)
-				( list 'm 1 (as-variable expression ) )
+			(vars-n-powers  ; bisogna ordinarlo
+				(as-expression expression)
 			)
-			(	;CONDIZIONE3 caso '(* ....)				# manca il TD
-				(
-					eq '* (car expression) 
-				)
-				(list 'm 'TD ( as-variable (cdr expression) ) )
+			(total-degree
+				(find-total-degree 0 vars-n-powers)
 			)
-			(	;CONDIZIONE4 caso '(expt 4 s)  			# manca il TD
-				(
-					eq 'expt (car expression)
-				)
-				(list 'm 'TD (as-variable  (list expression) ) )
+		)
+		(declare (special vars-n-powers))
+		(list 'm coefficient total-degree vars-n-powers)
+	)
+)
+
+;as-expression ATTENZIONE prende in input una expressione e chiama ricorsivamente as-variable
+(defun as-expression (expression)
+	(cond
+		(
+			(and
+				(numberp (car expression))
+				(eq nil (cdr expression))
 			)
-	) 
+			nil
+		)
+		(
+			(and
+				(symbolp (car expression))
+				(eq nil (cdr expression))
+				(not(eq ' * (car expression)))
+			)
+			(as-variable expression)
+		)
+		(
+			( eq '* (car expression) )
+			( as-variable (cdr expression) )
+		)
+		(
+			( eq 'expt (car expression) )
+			(as-variable (list expression) )
+		)
+	)
 )
 
 ;find-coefficient INPUT una expression OUTPUT la moltiplicazione dei coefficienti
@@ -104,7 +120,7 @@
 	)
 )
 
-;as-variable
+;as-variable ATTENZIONE prende in input liste del tipo (4 s (expt 4 s)) fa la chiamata ricorsiva in caso di più elementi
 (defun as-variable (variables)
 	(let
 		(
@@ -120,7 +136,7 @@
 					)
 					( ; CONDIZIONE3 ho un NUMERO 														# funziona
 						(numberp (car variables))
-						(list (car variables ) )
+						'()
 					)
 				)
 			)
@@ -138,7 +154,7 @@
 	)
 )
 
-;as-exponent
+;as-exponent ATTENZIONE prende in input liste del tipo (exp 4 s)
 (defun as-exponent (exponent)
 	(cond
 		( ; CONDIZIONE1 è della forma (expt 5 a) 		# funziona
@@ -157,7 +173,7 @@
 	      		(= 0 (second exponent))
 				(symbolp (third exponent))
 			) 
-			(list 1)
+			'()
 		)
 	)
 )
