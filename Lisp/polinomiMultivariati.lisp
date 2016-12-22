@@ -177,3 +177,111 @@
 		)
 	)
 )
+
+;(first (car (car '((V 3 S) (V 5 D)))))
+; print-variable INPUT sara di questo tipo ((V 3 S) (V 5 D) ...)
+(defun print-variable (variables)
+	(let
+		(
+			(var 
+				(cond
+					(
+						(and
+							(listp variables)
+							(listp (car variables))
+							(eq 'v (first (car variables)))
+							(numberp (second (car variables)))
+							(symbolp (third (car variables)))
+						)
+						(cond 
+							(
+								(= 1 (second variables)) 
+								(list (third variables))
+							)
+							(
+								(> 1 (second variables))
+								(list (third variables) '^ (second variables))
+							)
+						)
+					)
+				)
+			)
+		)
+		(cond
+			( ; CONDIZIONE1 non ci sono piu elementi da analizzare
+				(eq nil (cdr variables) )
+				var
+			)
+			( ; CONDIZIONE2 bisogna fare una chiamata ricorsiva
+				T
+				(append
+					(append var (list '*))
+					(print-variables (cdr variables))
+				) ; qui in mezzo dovrebbe esserci il *
+			)
+		)
+	)
+)
+
+; INPUT sara di questo tipo (M 1 9 ((V 3 S) (V 3 T) (V 1 W) (V 1 X) (V 1 Y)))
+(defun print-monomial (monomial)
+	(cond
+		(
+			(eq 'm (car monomial))
+			(let
+				(
+					(coefficient 
+						(second monomial)
+					)
+					(variable
+						(print-variable (fourth monomial))
+					)
+				)
+				(cond
+					( (= coefficient 1) (list '+ variable) )
+					( (= coefficient -1) (list '- variable) )
+					(T (list coefficient variable) )
+				)
+			)
+		)
+	)
+)
+
+(defun pprint-polynomial (expression)
+	(let
+		(
+			(monomial
+				(cond
+					(
+						(and
+							(listp expression)
+							(eq 'p (car expression))
+							(listp (second expression))
+						) 
+						(print-monomial (car (second expression) ) )
+					)
+				)
+			)
+			(restList
+				(cond
+					(
+						(listp expression)
+						(listp (cdr expression) )
+						(listp (car (cdr expression) ) )
+						( cdr (car (cdr expression) ) ) 
+					)
+				)
+			)
+		)
+		(cond
+			( ; CONDIZIONE1 non ci sono piu elementi da analizzare
+				(eq nil restList )
+				monomial
+			)
+			( ; CONDIZIONE2 bisogna fare una chiamata ricorsiva
+				T
+				(append monomial (print-polynomial (list 'p restList ) ) ) 
+			)
+		)
+	)
+)
