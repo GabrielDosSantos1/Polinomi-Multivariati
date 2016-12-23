@@ -288,10 +288,40 @@
 
 ;polyplus
 (defun polyplus (poly1 poly2) 
+	(let
+		(
+			(monomial1
+				(cond
+					(
+						(and
+							(listp poly1)
+							(eq 'p (car poly1))
+							(listp (second poly1))
+						)
+						(second poly1)
+					)
+				)
+			)
+			(monomial2
+				(cond
+					(
+						(and
+							(listp poly2)
+							(eq 'p (car poly2))
+							(listp (second poly2))
+						) 
+						(second poly2)
+					)
+				)
+			)
+		)
+		(append monomial1 monomial2) ; qui bisogna chiamare l'ordinamento dei polinomi
+	)
 )
 
 ;polytimes
 (defun polytimes (poly1 poly2) 
+	()
 )
 
 ;polyminus 
