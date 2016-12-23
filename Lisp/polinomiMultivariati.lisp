@@ -285,3 +285,16 @@
 		)
 	)
 )
+
+;polyplus
+(defun polyplus (poly1 poly2) 
+)
+
+;polytimes
+(defun polytimes (poly1 poly2) 
+)
+
+;polyminus 
+(defun polyminus (poly1 poly2)
+	()
+)
