@@ -3,8 +3,7 @@
 
 %coefficient
 coefficient(poly(Monomials), Coefficients) :-
-	polynomials_sort(Monomials, Sorted),
-	find_coefficients(Sorted, Coefficients), !.
+	find_coefficients(Monomials, Coefficients), !.
 
 coefficient(Expression, Coefficients) :-
 	as_polynomial(Expression, Polynomial),
@@ -16,9 +15,7 @@ find_coefficients([m(C, _, _)| Rest], [C| Tail]) :-
 
 						%variables
 variables(poly(Monomials), Variables) :-
-	polynomials_sort(Monomials, Sorted),
-	find_monomials(Sorted, Var),
-	duplicates(Var, Variables), !.
+	find_monomials(Monomials, Variables),!.
 
 variables(Expression, Variables) :-
 	as_polynomial(Expression, Polynomial),
@@ -34,11 +31,10 @@ find_variables([], []).
 find_variables([v(_, Symbol)| Rest], [Symbol| RestSym]) :-
 	find_variables(Rest, RestSym).
 						%
-						% TODO: FARE DUPLICATES
+						% TODO: FARE DUPLICATES che rimuove i duplicate all'interno di una lista
 						%
 						%monomials
-monomials(poly(Monomials), MonomialsList) :-
-	polynomials_sort(Monomials, MonomialsList), !.
+monomials(poly(Monomials), Monomials).
 
 monomials(Expression, MonomialsList) :-
 	as_polynomial(Expression, poly(MonomialsList)).
@@ -66,9 +62,9 @@ degreeList([m(_, Degree, _)| Rest], [Degree| Rec]) :-
 	degreeList(Rest, Rec).
 
 						%polyplus
-polyplus(poly(Monomials1), poly(Monomials2), poly(Sum)) :-
+polyplus(poly(Monomials1), poly(Monomials2), poly(List)) :-
 	append(Monomials1, Monomials2, List),
-	polynomials_sort(List, Sum), !.
+	!.
 
 polyplus(Expression1, Expression2, Sum) :-
 	as_polynomial(Expression1, Polynomial1),
@@ -88,11 +84,8 @@ polyminus(Expression1, Expression2, Minus) :-
 						%polytimes
 polytimes(poly([]), _, poly([])).
 
-polytimes(poly(Monomials1), poly(Monomials2), poly(PolySorted)) :-
-	polynomials_sort(Monomials1, poly(Sorted1)),
-	polynomials_sort(Monomials2, poly(Sorted2)),
-	dotProduct(Sorted1, Sorted2, Polytimes),
-	polynomials_sort(poly(Polytimes), PolySorted),!.
+polytimes(poly(Monomials1), poly(Monomials2), poly(Polytimes)) :-
+	dotProduct(Monomials1, Monomials2, Polytimes),!.
 
 polytimes(Expression1, Expression2, Polytimes) :-
 	as_polynomial(Expression1, Polynomial1),
@@ -117,7 +110,7 @@ as_monomial(Expression, m(C, TD, Sorted)) :-
 	find_coefficients(Variables, Coe, ListVar),
 	C is round(Coe * 1000) / 1000,
 	sumdegree(ListVar, TD),
-	monomial_sort(ListVar, Sorted).
+	monomial_sort(ListVar, Sorted),!.
 
 						%as_variable
 as_variable(X*Y, Solution) :-
@@ -126,17 +119,17 @@ as_variable(X*Y, Solution) :-
 	append(R, E, Solution).
 
 as_variable(X^Y, [v(Y,X)]) :-
-	Y >= 0,
+	Y > 0,
 	integer(Y),
 	X \= pi,
 	atom(X), !.
 
 as_variable(X, [v(1,X)]):- atom(X), X \=  pi.
-as_variable(X^0,[]) :- atom(X), X \=  pi.
+as_variable(X^0,[1]) :- atom(X), X \=  pi.
 as_variable(+X, [v(1,X)]):- atom(X), X \=  pi.
-as_variable(+X^0,[]) :- atom(X), X \=  pi.
+as_variable(+X^0,[1]) :- atom(X), X \=  pi.
 as_variable(-X, [v(1,X)]):- atom(X), X \=  pi.
-as_variable(-X^0,[]) :- atom(X), X \=  pi.
+as_variable(-X^0,[1]) :- atom(X), X \=  pi.
 as_variable(C, R) :- as_coefficient(C, R).
 
 						%find_coefficient
@@ -193,29 +186,7 @@ d([_,_|T],[X|L],[X|L1],R) :- d(T,L,L1,R).
 
 						%coefficient
 as_coefficient(C, [R]) :- R is C.
-%% as_coefficient([],[]).
-%% as_coefficient(C, [C]) :- number(C),!.
-%% as_coefficient(+C, [R]) :- is_number(C, [C1]), R is C1, !.
-%% as_coefficient(-C, [R]) :- is_number(C, [C1]), R is C1 * -1, !.
-%% as_coefficient(sqrt(C), [R]) :- is_number(C, [C1]), R is sqrt(C1), !.
-%% as_coefficient(sin(C), [R]) :- is_number(C, [C1]), R is sin(C1), !.
-%% as_coefficient(sen(C), [R]) :- is_number(C, [C1]), R is sin(C1),!.
-%% as_coefficient(cos(C), [R]) :- is_number(C, [C1]), R is cos(C1), !.
-%% as_coefficient(tan(C), [R]) :- is_number(C, [C1]), R is tan(C1), !.
-%% as_coefficient(asin(C), [R]) :- is_number(C, [C1]), R is asin(C1), !.
-%% as_coefficient(acos(C), [R]) :- is_number(C, [C1]), R is acos(C1), !.
-%% as_coefficient(atan(C), [R]) :- is_number(C, [C1]), R is atan(C1), !.
-%% as_coefficient(sinh(C), [R]) :- is_number(C, [C1]), R is sinh(C1), !.
-%% as_coefficient(cosh(C), [R]) :- is_number(C, [C1]), R is cosh(C1), !.
-%% as_coefficient(tanh(C), [R]) :- is_number(C, [C1]), R is tanh(C1), !.
-%% as_coefficient(asinh(C), [R]) :- is_number(C, [C1]), R is asinh(C1), !.
-%% as_coefficient(acosh(C), [R]) :- is_number(C, [C1]), R is acosh(C1), !.
-%% as_coefficient(atanh(C), [R]) :- is_number(C, [C1]), R is atanh(C1), !.
-%% as_coefficient(log(C), [R]) :- is_number(C, [C1]), R is log(C1), !.
-%% as_coefficient(log10(C), [R]) :- is_number(C, [C1]), R is log10(C1), !.
-%% as_coefficient(exp(C), [R]) :- is_number(C, [C1]), R is exp(C1), !.
-%% as_coefficient(pi, [R]) :- R is pi, !
-.
+
 as_coefficient(C^E, [R]) :-
 	is_number(C, [C1]),
 	is_number(E, [E1]),

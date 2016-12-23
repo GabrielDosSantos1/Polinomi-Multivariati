@@ -1,0 +1,48 @@
+as_monomial(5*a^2*b^3,X).
+as_monomial(-2/3*a^5,X).
+as_monomial(-2/3*a^5,X).
+as_monomial(-2/3*a^5,X).
+as_monomial(+2*b*c^2,X).
+as_monomial(+4*x+2y,X).
+as_monomial(+5*a*b-2,X).
+as_monomial(+2*(-3)*a*a*b^2,X).
+as_monomial(-6*a*a*b^2,X).
+as_monomial(0*a^2,X).
+as_monomial(-a*b,X).
+as_monomial(+a*b,X).
+as_monomial(+2,X).
+as_monomial(0,X).
+as_monomial(-1,X).
+as_monomial(2,X).
+as_monomial(4*a^2*b^0,X).
+as_monomial(+5,X).
+as_monomial(-3,X).
+as_monomial(-3*x^0,X).
+as_monomial(5*x^0,X).
+
+
+
+
+
+% as_coefficient([],[]).
+% as_coefficient(C, [C]) :- number(C),!.
+% as_coefficient(+C, [R]) :- is_number(C, [C1]), R is C1, !.
+% as_coefficient(-C, [R]) :- is_number(C, [C1]), R is C1 * -1, !.
+% as_coefficient(sqrt(C), [R]) :- is_number(C, [C1]), R is sqrt(C1), !.
+% as_coefficient(sin(C), [R]) :- is_number(C, [C1]), R is sin(C1), !.
+% as_coefficient(sen(C), [R]) :- is_number(C, [C1]), R is sin(C1),!.
+% as_coefficient(cos(C), [R]) :- is_number(C, [C1]), R is cos(C1), !.
+% as_coefficient(tan(C), [R]) :- is_number(C, [C1]), R is tan(C1), !.
+% as_coefficient(asin(C), [R]) :- is_number(C, [C1]), R is asin(C1), !.
+% as_coefficient(acos(C), [R]) :- is_number(C, [C1]), R is acos(C1), !.
+% as_coefficient(atan(C), [R]) :- is_number(C, [C1]), R is atan(C1), !.
+% as_coefficient(sinh(C), [R]) :- is_number(C, [C1]), R is sinh(C1), !.
+% as_coefficient(cosh(C), [R]) :- is_number(C, [C1]), R is cosh(C1), !.
+% as_coefficient(tanh(C), [R]) :- is_number(C, [C1]), R is tanh(C1), !.
+% as_coefficient(asinh(C), [R]) :- is_number(C, [C1]), R is asinh(C1), !.
+% as_coefficient(acosh(C), [R]) :- is_number(C, [C1]), R is acosh(C1), !.
+% as_coefficient(atanh(C), [R]) :- is_number(C, [C1]), R is atanh(C1), !.
+% as_coefficient(log(C), [R]) :- is_number(C, [C1]), R is log(C1), !.
+% as_coefficient(log10(C), [R]) :- is_number(C, [C1]), R is log10(C1), !.
+% as_coefficient(exp(C), [R]) :- is_number(C, [C1]), R is exp(C1), !.
+% as_coefficient(pi, [R]) :- R is pi, !.
